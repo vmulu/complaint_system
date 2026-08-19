@@ -1,5 +1,0 @@
-"""
-
-for personal testing
-
-"""

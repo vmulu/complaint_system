@@ -2,7 +2,7 @@
 Pydantic models for the complaint system.
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Literal
 
 AccountType = Literal["residential", "commercial"]
@@ -16,6 +16,24 @@ class Customer(BaseModel):
     name : str
     account_number : int
     account_type : AccountType
+
+class CreateCustomerDto(BaseModel):
+    """
+    DTO for creating a Customer object
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    name : str
+    account_type : AccountType
+
+class UpdateCustomerDto(BaseModel):
+    """
+    DTO for updating a Customer object
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    name : str | None = None
+    account_type : AccountType | None = None
 
 class Complaint(BaseModel):
     """
