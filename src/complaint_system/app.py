@@ -5,9 +5,9 @@
 
 from flask import Flask
 from .customers.routes import customers_bp
-from .customers.responses import NoCustomerFoundError
+from .complaints.routes import complaints_bp
 from pydantic import ValidationError
-from .error_responses import error_response
+from .error_responses import error_response, NoCustomerFoundError, NoComplaintFoundError
 
 def create_app():
     """
@@ -18,13 +18,16 @@ def create_app():
     # add blueprint for:
     #   customer_bp
     #   complaint_bp
-
     app.register_blueprint(customers_bp, url_prefix="/api/v1/customers")
+    app.register_blueprint(complaints_bp, url_prefix="/api/v1/complaints")
 
     # add error handling
-
     @app.errorhandler(NoCustomerFoundError)
     def handle_no_customer_error(error : NoCustomerFoundError):
+        return error_response(error.code, error.status, error.detail)
+
+    @app.errorhandler(NoComplaintFoundError)
+    def handle_no_complaint_error(error : NoComplaintFoundError):
         return error_response(error.code, error.status, error.detail)
 
     @app.errorhandler(ValidationError)
