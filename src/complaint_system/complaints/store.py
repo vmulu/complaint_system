@@ -10,42 +10,47 @@ from complaint_system.data import COMPLAINTS
 from complaint_system.models import Complaint, CreateComplaintDto, UpdateComplaintDto, Priority, Status, Channel
 from pydantic import TypeAdapter
 from complaint_system.customers import store as customer_store
+from sqlalchemy import select
+from complaint_system.extensions import db
+from complaint_system.db_models import CustomerComplaint, CustomerRecord
 
 priorityAdaptor = TypeAdapter(Priority)
 statusAdaptor = TypeAdapter(Status)
 channelAdaptor = TypeAdapter(Channel)
 
-# will be removed once we connect to DB
-#   turning list into Complaint objects
-_complaints : list[Complaint] = [Complaint.model_validate(row) for row in COMPLAINTS]
 
 def list_complaints() -> list[Complaint]:
     """
-    Returns all Customers
+    Returns all Complaints
     """
 
-    return _complaints
+    stmt = select(CustomerComplaint).order_by(CustomerComplaint.id)
+    records = db.session.execute(stmt).scalars()
+
+    return [Complaint.model_validate(r) for r in records]
 
 # missing sentiment comes later
-def list_complaints_by_query(*, customer_account_number : str | None = None, priority : str | None = None, status : str | None = None, channel : str | None = None) -> list[Complaint]:
+def list_complaints_by_query(*, customer_id : int | None = None, priority : str | None = None, status : str | None = None, channel : str | None = None) -> list[Complaint]:
     """
     Filters support by customer, *sentiment*, derived priority, and status, sorted with the most urgent first.
     """
 
-    results = _complaints
+    stmt = select(CustomerComplaint)
 
-    if customer_account_number is not None:
-        new_num = int(customer_account_number)
-        results = [c for c in results if c.customer_account_number == new_num]
+    if customer_id is not None:
+        stmt = stmt.where(CustomerComplaint.customer_id == customer_id)
     if priority is not None:
         valid_priority = priorityAdaptor.validate_python(priority)
-        results = [c for c in results if c.priority == valid_priority]
+        stmt = stmt.where(CustomerComplaint.priority == valid_priority)
     if status is not None:
         valid_status = statusAdaptor.validate_python(status)
-        results = [c for c in results if c.status == valid_status]
+        stmt = stmt.where(CustomerComplaint.status == valid_status)
     if channel is not None:
         valid_channel = channelAdaptor.validate_python(channel)
-        results = [c for c in results if c.channel == valid_channel]
+        stmt = stmt.where(CustomerComplaint.channel == valid_channel)
+
+    records = db.session.execute(stmt).scalars()
+    results = [Complaint.model_validate(r) for r in records]
 
     # sorting results by priority
     PRIORITY_ORDER = {
@@ -66,47 +71,54 @@ def create_complaint(complaint : dict) -> Complaint | None:
     valid_complaint = CreateComplaintDto.model_validate(complaint)
 
     # find if customer exists
-    customer_exists = customer_store.find_customer_by_account_number(valid_complaint.customer_account_number)
-
-    if customer_exists is None:
+    customer = db.session.execute(select(CustomerRecord).where(CustomerRecord.account_number == valid_complaint.customer_account_number)).scalar_one_or_none()
+    if customer is None:
         # return None and trigger exception if no customer exists with tht id
         return None
 
-    # simulate DB creating a new complaint_id
-    complaint_id = _complaints[-1].complaint_id + 1
-    new_complaint = Complaint(complaint_id=complaint_id, **valid_complaint.model_dump())
+    new_complaint = CustomerComplaint(
+        customer_id=customer.id, # type: ignore
+        channel=valid_complaint.channel, # type: ignore
+        subject=valid_complaint.subject, # type: ignore
+        body=valid_complaint.body, # type: ignore
+    )
 
-    # simulate saving to DB
-    _complaints.append(new_complaint)
+    db.session.add(new_complaint)
+    db.session.commit()
 
-    return new_complaint
+    return Complaint.model_validate(new_complaint)
 
-def update_complaint_status_and_priority(complaint_id : int, complaint : dict) -> Complaint | None:
+def update_complaint_status_and_priority(id : int, complaint : dict) -> Complaint | None:
     """
     Updating existing Complaint
     """
 
     valid_complaint = UpdateComplaintDto.model_validate(complaint)
+    record = db.session.get(CustomerComplaint, id)
 
-    for c in _complaints:
-        if c.complaint_id == complaint_id:
-            if valid_complaint.status is not None:
-                c.status = valid_complaint.status
-            if valid_complaint.priority is not None:
-                c.priority = valid_complaint.priority
+    if record is None:
+        return None
 
-            return c
+    if valid_complaint.status is not None:
+        record.status = valid_complaint.status
+    if valid_complaint.priority is not None:
+        record.priority = valid_complaint.priority
 
-    return None
+    db.session.commit()
 
-def delete_complaint(complaint_id : int) -> bool:
+    return Complaint.model_validate(record)
+
+def delete_complaint(id : int) -> bool:
     """
     Delete existing Complaint
     """
 
-    for complaint in _complaints:
-        if complaint.complaint_id == complaint_id:
-            _complaints.remove(complaint)
-            return True
+    record = db.session.get(CustomerComplaint, id)
 
-    return False
+    if record is None:
+        return False
+
+    db.session.delete(record)
+    db.session.commit()
+
+    return True

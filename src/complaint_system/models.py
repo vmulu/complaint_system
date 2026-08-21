@@ -15,6 +15,8 @@ class Customer(BaseModel):
     Represents a customer account
     """
 
+    model_config = ConfigDict(from_attributes=True)
+
     name : str
     account_number : int
     account_type : AccountType
@@ -26,6 +28,7 @@ class CreateCustomerDto(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
     name : str
+    account_number : int
     account_type : AccountType
 
 class UpdateCustomerDto(BaseModel):
@@ -42,11 +45,10 @@ class Complaint(BaseModel):
     Represents a written complaint submitted by a customer.
     """
 
-    # eventually we need to add customer field that links Complaint -> Customer
-    #   have one for now 'customer_account_number' possibly changes when we connect with db
+    model_config = ConfigDict(from_attributes=True)
 
-    complaint_id : int
-    customer_account_number : int
+    id : int
+    customer_id : int
     channel : Channel
     status : Status = "new"
     priority : Priority = "low"     # default for now until we connect with AWS

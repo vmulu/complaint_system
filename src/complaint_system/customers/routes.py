@@ -6,7 +6,7 @@ API endpoints for customers
 
 from flask import Blueprint, request, jsonify
 from . import store
-from .responses import list_envelope, single_envelope
+from .responses import list_envelope, single_envelope, DuplicateAccountNumberError
 from ..error_responses import NoCustomerFoundError
 
 customers_bp = Blueprint("customers", __name__)
@@ -46,8 +46,12 @@ def create_customer():
     """
 
     body = request.get_json(silent=True) or {}
+    new_customer = store.create_customer(body)
 
-    return single_envelope(store.create_customer(body))
+    if new_customer is None:
+        raise DuplicateAccountNumberError(code="duplicate_account_number", status=400, detail=f"Customer with account number {body["account_number"]} already exists")
+
+    return single_envelope(new_customer)
 
 # PUT /api/v1/customers/<account_number>
 @customers_bp.put("/<int:account_number>")

@@ -18,13 +18,13 @@ def get_complaints():
     Get all Complaints or by query
     """
 
-    customer_account_number = request.args.get("customer_account_number")
+    customer_id = request.args.get("customer_id", type=int)
     priority = request.args.get("priority")
     status = request.args.get("status")
     channel = request.args.get("channel")
 
-    if customer_account_number or priority or status or channel:
-        return list_envelope(store.list_complaints_by_query(customer_account_number=customer_account_number, priority=priority, status=status, channel=channel))
+    if customer_id or priority or status or channel:
+        return list_envelope(store.list_complaints_by_query(customer_id=customer_id, priority=priority, status=status, channel=channel))
 
     return list_envelope(store.list_complaints())
 
