@@ -1,4 +1,6 @@
 .venv/
 __pycache__/
-complaint_system.egg-info/
-.env/
+*.pyc
+*.egg-info/
+
+.env
