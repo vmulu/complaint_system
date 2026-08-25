@@ -35,6 +35,8 @@ def find_customers_by_account_type(account_type : str) -> list[Customer]:
     stmt = select(CustomerRecord).where(CustomerRecord.account_type == valid_account_type)
     records = db.session.execute(stmt).scalars()
 
+    # can use customer.complaints to get number of complaints!
+
     return [Customer.model_validate(r) for r in records]
 
 def find_customer_by_account_number(account_number : int) -> Customer | None:

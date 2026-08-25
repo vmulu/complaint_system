@@ -35,7 +35,7 @@ def get_customer_by_account_number(account_number : int):
     customer = store.find_customer_by_account_number(account_number)
 
     if customer is None:
-        raise NoCustomerFoundError(code="customer_not_found", status=400, detail=f"Customer with account number {account_number} was not found")
+        raise NoCustomerFoundError(code="customer_not_found", status=404, detail=f"Customer with account number {account_number} was not found")
     return single_envelope(customer)
 
 # POST /api/v1/customers
@@ -65,7 +65,7 @@ def update_customer(account_number : int):
     customer = store.update_customer(account_number, body)
 
     if customer is None:
-        raise NoCustomerFoundError(code="customer_not_found", status=400, detail=f"Customer with account number {account_number} was not found")
+        raise NoCustomerFoundError(code="customer_not_found", status=404, detail=f"Customer with account number {account_number} was not found")
     return single_envelope(customer)
 
 # Delete /api/v1/customers/<account_number>
@@ -79,4 +79,4 @@ def delete_customer(account_number : int):
 
     if success:
         return jsonify(status="deleted"), 204
-    raise NoCustomerFoundError(code="customer_not_found", status=400, detail=f"Customer with account number {account_number} was not found")
+    raise NoCustomerFoundError(code="customer_not_found", status=404, detail=f"Customer with account number {account_number} was not found")
