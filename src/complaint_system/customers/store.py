@@ -7,7 +7,7 @@ CRUD operations on data
 """
 
 from complaint_system.data import CUSTOMERS
-from complaint_system.models import Customer, CreateCustomerDto, UpdateCustomerDto, AccountType
+from complaint_system.models import Customer, SendCustomer, CreateCustomerDto, UpdateCustomerDto, AccountType
 from pydantic import TypeAdapter
 from sqlalchemy import select
 from complaint_system.extensions import db
@@ -15,7 +15,7 @@ from complaint_system.db_models import CustomerRecord
 
 accountTypeAdaptor = TypeAdapter(AccountType)
 
-def list_customers() -> list[Customer]:
+def list_customers() -> list[SendCustomer]:
     """
     Returns all Customers
     """
@@ -23,9 +23,17 @@ def list_customers() -> list[Customer]:
     stmt = select(CustomerRecord).order_by(CustomerRecord.id)
     records = db.session.execute(stmt).scalars()
 
-    return [Customer.model_validate(r) for r in records]
+    return [
+        SendCustomer(
+            name=r.name,
+            account_number=r.account_number,
+            account_type=r.account_type, # type: ignore
+            complaint_count=len(r.complaints)
+        )
+        for r in records
+    ]
 
-def find_customers_by_account_type(account_type : str) -> list[Customer]:
+def find_customers_by_account_type(account_type : str) -> list[SendCustomer]:
     """
     Returns all Customers who have this account_type
     """
@@ -35,20 +43,30 @@ def find_customers_by_account_type(account_type : str) -> list[Customer]:
     stmt = select(CustomerRecord).where(CustomerRecord.account_type == valid_account_type)
     records = db.session.execute(stmt).scalars()
 
-    # can use customer.complaints to get number of complaints!
+    return [
+        SendCustomer(
+            name=r.name,
+            account_number=r.account_number,
+            account_type=r.account_type, # type: ignore
+            complaint_count=len(r.complaints)
+        )
+        for r in records
+    ]
 
-    return [Customer.model_validate(r) for r in records]
-
-def find_customer_by_account_number(account_number : int) -> Customer | None:
+def find_customer_by_account_number(account_number : int) -> SendCustomer | None:
     """
     Returns Customer that has given account_number
     """
 
-    # eventually we need to return number of complaints along w/ customer info
     stmt = select(CustomerRecord).where(CustomerRecord.account_number == account_number)
     record = db.session.execute(stmt).scalar_one_or_none()
 
-    return Customer.model_validate(record) if record is not None else None
+    return SendCustomer(
+            name=record.name,
+            account_number=record.account_number,
+            account_type=record.account_type, # type: ignore
+            complaint_count=len(record.complaints)
+        ) if record is not None else None
 
 def create_customer(customer : dict) -> Customer | None:
     """

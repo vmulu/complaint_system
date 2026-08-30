@@ -1,19 +1,23 @@
 """
-
-
+Starting point for Flask App
 """
 
-from flask import Flask
 from .customers.routes import customers_bp
 from .complaints.routes import complaints_bp
-from pydantic import ValidationError
+from .health.routes import health_bp
+from .extensions import db
 from .customers.responses import DuplicateAccountNumberError
 from .error_responses import error_response, NoCustomerFoundError, NoComplaintFoundError
+
 import os
-from .extensions import db
+import json, logging, time, uuid # generates random ids for requests
+from flask import Flask, request, g
 from flask_migrate import Migrate
+from pydantic import ValidationError
 
 migrate = Migrate()
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 def create_app():
     """
@@ -23,6 +27,32 @@ def create_app():
 
     app.register_blueprint(customers_bp, url_prefix="/api/v1/customers")
     app.register_blueprint(complaints_bp, url_prefix="/api/v1/complaints")
+    app.register_blueprint(health_bp, url_prefix="/api/v1/health")
+
+    # request logging
+    @app.before_request
+    def start_request():
+        """calculating start time of req and getting ID for req"""
+        g.start_time = time.perf_counter()
+        g.correlation_id = request.headers.get("X-Correlation-ID", str(uuid.uuid4()))
+
+    @app.after_request
+    def log_request(response):
+        duration = time.perf_counter() - g.start_time
+
+        log_data = {
+            "method": request.method,
+            "path": request.path,
+            "status_code": response.status_code,
+            "duration": round(duration * 1000, 2),
+            "correlation_id": g.correlation_id
+        }
+
+        logger.info(json.dumps(log_data))
+        response.headers["X-Correlation-ID"] = g.correlation_id
+        # print(log_data)
+
+        return response
 
     # db set up
     app.config["SQLALCHEMY_DATABASE_URI"] = os.environ["DATABASE_URL"]

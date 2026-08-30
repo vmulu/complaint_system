@@ -21,6 +21,18 @@ class Customer(BaseModel):
     account_number : int
     account_type : AccountType
 
+class SendCustomer(BaseModel):
+    """
+    Represents a read only customer. Only meant to display complaint count.
+    """
+    model_config = ConfigDict(from_attributes=True)
+
+    name : str
+    account_number : int
+    account_type : AccountType
+
+    complaint_count : int
+
 class CreateCustomerDto(BaseModel):
     """
     DTO for creating a Customer object
