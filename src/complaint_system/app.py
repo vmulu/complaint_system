@@ -50,7 +50,6 @@ def create_app():
 
         logger.info(json.dumps(log_data))
         response.headers["X-Correlation-ID"] = g.correlation_id
-        # print(log_data)
 
         return response
 

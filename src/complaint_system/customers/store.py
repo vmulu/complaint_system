@@ -6,7 +6,6 @@ CRUD operations on data
 
 """
 
-from complaint_system.data import CUSTOMERS
 from complaint_system.models import Customer, SendCustomer, CreateCustomerDto, UpdateCustomerDto, AccountType
 from pydantic import TypeAdapter
 from sqlalchemy import select

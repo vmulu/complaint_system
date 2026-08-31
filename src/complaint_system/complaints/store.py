@@ -5,8 +5,6 @@ Logic for complaints
 CRUD operations on data
 
 """
-
-from complaint_system.data import COMPLAINTS
 from complaint_system.models import Complaint, CreateComplaintDto, UpdateComplaintDto, Priority, Status, Channel
 from pydantic import TypeAdapter
 from complaint_system.customers import store as customer_store
