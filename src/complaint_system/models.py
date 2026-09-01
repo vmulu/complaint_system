@@ -67,6 +67,7 @@ class Complaint(BaseModel):
     sentiment: str | None = None
     subject : str = Field(min_length=1, max_length=200)
     body : str = Field(min_length=1, max_length=5000)
+    contained_pii: bool
 
 class CreateComplaintDto(BaseModel):
     """

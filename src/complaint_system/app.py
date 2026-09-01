@@ -5,6 +5,7 @@ Starting point for Flask App
 from .customers.routes import customers_bp
 from .complaints.routes import complaints_bp
 from .health.routes import health_bp
+from .analysis.routes import analysis_bp
 from .extensions import db
 from .customers.responses import DuplicateAccountNumberError
 from .error_responses import error_response, NoCustomerFoundError, NoComplaintFoundError
@@ -28,6 +29,9 @@ def create_app():
     app.register_blueprint(customers_bp, url_prefix="/api/v1/customers")
     app.register_blueprint(complaints_bp, url_prefix="/api/v1/complaints")
     app.register_blueprint(health_bp, url_prefix="/api/v1/health")
+
+    # test routes for AWS services
+    app.register_blueprint(analysis_bp, url_prefix="/api/v1/analysis")
 
     # request logging
     @app.before_request

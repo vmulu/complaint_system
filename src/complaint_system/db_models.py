@@ -36,6 +36,7 @@ class CustomerComplaint(db.Model):
     sentiment: Mapped[str | None] = mapped_column(String(20),nullable=True)
     subject : Mapped[str] = mapped_column(Text, nullable=False)
     body : Mapped[str] = mapped_column(Text, nullable=False)
+    contained_pii: Mapped[bool] = mapped_column(nullable=False, default=False)
 
     customer : Mapped["CustomerRecord"] = relationship(
         back_populates="complaints"

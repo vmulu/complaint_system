@@ -7,10 +7,10 @@ CRUD operations on data
 """
 from complaint_system.models import Complaint, CreateComplaintDto, UpdateComplaintDto, Priority, Status, Channel
 from pydantic import TypeAdapter
-from complaint_system.customers import store as customer_store
 from sqlalchemy import select
 from complaint_system.extensions import db
 from complaint_system.db_models import CustomerComplaint, CustomerRecord
+from ..analysis.service import redact_pii, detect_pii
 
 priorityAdaptor = TypeAdapter(Priority)
 statusAdaptor = TypeAdapter(Status)
@@ -102,17 +102,22 @@ def create_complaint(complaint : dict) -> Complaint | None:
 
     valid_complaint = CreateComplaintDto.model_validate(complaint)
 
-    # find if customer exists
     customer = db.session.execute(select(CustomerRecord).where(CustomerRecord.account_number == valid_complaint.customer_account_number)).scalar_one_or_none()
     if customer is None:
-        # return None and trigger exception if no customer exists with tht id
         return None
+
+    pii_check = detect_pii(valid_complaint.body)
+
+    redacted_body = redact_pii(valid_complaint.body, pii_check)
+
+    contained_pii = len(pii_check) > 0
 
     new_complaint = CustomerComplaint(
         customer_id=customer.id, # type: ignore
         channel=valid_complaint.channel, # type: ignore
         subject=valid_complaint.subject, # type: ignore
-        body=valid_complaint.body, # type: ignore
+        body=redacted_body, # type: ignore
+        contained_pii=contained_pii # type: ignore
     )
 
     db.session.add(new_complaint)
