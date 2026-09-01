@@ -16,6 +16,40 @@ priorityAdaptor = TypeAdapter(Priority)
 statusAdaptor = TypeAdapter(Status)
 channelAdaptor = TypeAdapter(Channel)
 
+SORT_ORDERS = {
+    "priority": {
+        "high": 1,
+        "medium": 2,
+        "low": 3
+    },
+    "status": {
+        "new": 1,
+        "in_progress": 2,
+        "resolved": 3
+    },
+    "channel": {
+        "email": 1,
+        "web_form": 2,
+        "mail": 3
+    },
+    "sentiment": {
+        "negative": 1,
+        "neutral": 2,
+        "positive": 3
+    }
+}
+
+def sort_complaints(results : list[Complaint], sort_by : str) -> list[Complaint]:
+    """sorts complaint list"""
+
+    if sort_by not in SORT_ORDERS:
+        return results
+
+    order = SORT_ORDERS[sort_by]
+
+    results.sort(key=lambda complaint: order[getattr(complaint, sort_by)])
+
+    return results
 
 def list_complaints() -> list[Complaint]:
     """
@@ -27,8 +61,12 @@ def list_complaints() -> list[Complaint]:
 
     return [Complaint.model_validate(r) for r in records]
 
-# missing sentiment comes later
-def list_complaints_by_query(*, customer_id : int | None = None, priority : str | None = None, status : str | None = None, channel : str | None = None) -> list[Complaint]:
+def list_complaints_by_query(*, customer_id : int | None = None,
+                                priority : str | None = None,
+                                status : str | None = None,
+                                channel : str | None = None,
+                                sentiment : str | None = None,
+                                sort_by : str | None = None) -> list[Complaint]:
     """
     Filters support by customer, *sentiment*, derived priority, and status, sorted with the most urgent first.
     """
@@ -46,18 +84,14 @@ def list_complaints_by_query(*, customer_id : int | None = None, priority : str 
     if channel is not None:
         valid_channel = channelAdaptor.validate_python(channel)
         stmt = stmt.where(CustomerComplaint.channel == valid_channel)
+    if sentiment is not None:
+        stmt = stmt.where(CustomerComplaint.sentiment == sentiment)
 
     records = db.session.execute(stmt).scalars()
     results = [Complaint.model_validate(r) for r in records]
 
-    # sorting results by priority
-    PRIORITY_ORDER = {
-        "high": 1,
-        "medium": 2,
-        "low": 3
-    }
-
-    results.sort(key=lambda complaint: PRIORITY_ORDER[complaint.priority])
+    if sort_by:
+        return sort_complaints(results, sort_by)
 
     return results
 

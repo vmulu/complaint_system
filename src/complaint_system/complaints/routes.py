@@ -22,9 +22,16 @@ def get_complaints():
     priority = request.args.get("priority")
     status = request.args.get("status")
     channel = request.args.get("channel")
+    sentiment = request.args.get("sentiment")
+    sort_by = request.args.get("sort_by")
 
     if customer_id or priority or status or channel:
-        return list_envelope(store.list_complaints_by_query(customer_id=customer_id, priority=priority, status=status, channel=channel))
+        return list_envelope(store.list_complaints_by_query(customer_id=customer_id,
+                                                            priority=priority,
+                                                            status=status,
+                                                            channel=channel,
+                                                            sentiment=sentiment,
+                                                            sort_by=sort_by))
 
     return list_envelope(store.list_complaints())
 
