@@ -64,6 +64,7 @@ class Complaint(BaseModel):
     channel : Channel
     status : Status = "new"
     priority : Priority = "low"     # default for now until we connect with AWS
+    sentiment: str | None = None
     subject : str = Field(min_length=1, max_length=200)
     body : str = Field(min_length=1, max_length=5000)
 
