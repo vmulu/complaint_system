@@ -95,6 +95,12 @@ def list_complaints_by_query(*, customer_id : int | None = None,
 
     return results
 
+def list_urgent_and_unresolved_complaints() ->list[Complaint]:
+
+    urgent = list_complaints_by_query(sort_by="priority")
+
+    return [c for c in urgent if c.status != "resolved"]
+
 def create_complaint(complaint : dict) -> Complaint | None:
     """
     Creates a new Complaint object

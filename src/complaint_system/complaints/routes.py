@@ -35,6 +35,13 @@ def get_complaints():
 
     return list_envelope(store.list_complaints())
 
+# GET /api/v1/complaints/urgent
+@complaints_bp.get("/urgent")
+def get_urgent_complaints():
+    """urgent endpoint that lists all unresolved urgent complaints"""
+
+    return list_envelope(store.list_urgent_and_unresolved_complaints())
+
 # POST /api/v1/complaints
 @complaints_bp.post("")
 def create_complaint():
