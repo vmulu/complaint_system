@@ -1,7 +1,7 @@
 """used to test aws services"""
 
 from flask import Blueprint, request
-from complaint_system.analysis.service import detect_pii, redact_pii
+from complaint_system.analysis.service import detect_pii, redact_pii, derive_priority, detect_sentiment
 
 analysis_bp = Blueprint("analysis", __name__)
 
@@ -22,3 +22,19 @@ def check_pii():
 
     return redact_pii(body, result), 200 # type: ignore
 
+@analysis_bp.post("/sentiment")
+def check_sentiment():
+    data = request.get_json()
+
+    body = data.get("body")
+
+    if not body:
+        return {"error": "body is required"}, 400
+
+    sentiment = detect_sentiment(body)
+    result = derive_priority(body)
+
+    return {
+        "sentiment" : sentiment,
+        "priority" : result
+    }

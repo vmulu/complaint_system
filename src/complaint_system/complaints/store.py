@@ -10,7 +10,7 @@ from pydantic import TypeAdapter
 from sqlalchemy import select
 from complaint_system.extensions import db
 from complaint_system.db_models import CustomerComplaint, CustomerRecord
-from ..analysis.service import redact_pii, detect_pii
+from ..analysis.service import redact_pii, detect_pii, derive_priority, detect_sentiment
 
 priorityAdaptor = TypeAdapter(Priority)
 statusAdaptor = TypeAdapter(Status)
@@ -59,7 +59,7 @@ def list_complaints() -> list[Complaint]:
     stmt = select(CustomerComplaint).order_by(CustomerComplaint.id)
     records = db.session.execute(stmt).scalars()
 
-    return [Complaint.model_validate(r) for r in records]
+    return sort_complaints([Complaint.model_validate(r) for r in records], sort_by="priority")
 
 def list_complaints_by_query(*, customer_id : int | None = None,
                                 priority : str | None = None,
@@ -106,15 +106,20 @@ def create_complaint(complaint : dict) -> Complaint | None:
     if customer is None:
         return None
 
+    # pii checks
     pii_check = detect_pii(valid_complaint.body)
-
     redacted_body = redact_pii(valid_complaint.body, pii_check)
-
     contained_pii = len(pii_check) > 0
+
+    # priority assignment
+    sentiment = detect_sentiment(redacted_body)["sentiment"].lower()
+    priority = derive_priority(redacted_body)
 
     new_complaint = CustomerComplaint(
         customer_id=customer.id, # type: ignore
         channel=valid_complaint.channel, # type: ignore
+        priority=priority, # type: ignore
+        sentiment=sentiment, # type: ignore
         subject=valid_complaint.subject, # type: ignore
         body=redacted_body, # type: ignore
         contained_pii=contained_pii # type: ignore
