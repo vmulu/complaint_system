@@ -1,5 +1,5 @@
 """
-    calling AWS Comprehend with boto3
+    calling AWS Comprehend
        - PII Detection & Redaction
        - Sentiment Analysis
 """

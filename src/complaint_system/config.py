@@ -11,3 +11,4 @@ load_dotenv()
 # save env variable to variables in the app
 AWS_PROFILE = os.environ["AWS_PROFILE"]
 AWS_REGION = os.environ["AWS_REGION"]
+BUCKET_NAME = os.environ["AWS_BUCKET_NAME"]

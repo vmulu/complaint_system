@@ -27,5 +27,21 @@ class NoComplaintFoundError(Exception):
         self.status = status
         self.detail = detail
 
+class DocumentUploadError(Exception):
+    """
+    Raised when a document is upload that we cannot support
+    """
+
+    def __init__(self, code: str, status: int, detail: str | None = None):
+
+        # Flask expects specific values for "code"
+        #   ex: "not_found" "internal" "validation_failed"
+
+        super().__init__(detail or code)
+        self.code = code
+        self.status = status
+        self.detail = detail
+
+
 def error_response(code : str, status : int, detail : str | None = None):
     return jsonify(error=code, detail=detail), status

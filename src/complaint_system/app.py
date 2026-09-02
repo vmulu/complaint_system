@@ -6,6 +6,7 @@ from .customers.routes import customers_bp
 from .complaints.routes import complaints_bp
 from .health.routes import health_bp
 from .analysis.routes import analysis_bp
+from .documents.routes import documents_bp
 from .extensions import db
 from .customers.responses import DuplicateAccountNumberError
 from .error_responses import error_response, NoCustomerFoundError, NoComplaintFoundError
@@ -32,6 +33,7 @@ def create_app():
 
     # test routes for AWS services
     app.register_blueprint(analysis_bp, url_prefix="/api/v1/analysis")
+    app.register_blueprint(documents_bp, url_prefix="/api/v1/document")
 
     # request logging
     @app.before_request
