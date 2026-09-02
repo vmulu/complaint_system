@@ -29,7 +29,7 @@ class NoComplaintFoundError(Exception):
 
 class DocumentUploadError(Exception):
     """
-    Raised when a document is upload that we cannot support
+    Raised when a document is upload has an issue
     """
 
     def __init__(self, code: str, status: int, detail: str | None = None):

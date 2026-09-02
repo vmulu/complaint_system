@@ -6,7 +6,7 @@ API endpoints for complaints
 
 from flask import Blueprint, request, jsonify
 from .responses import list_envelope, single_envelope
-from ..error_responses import NoCustomerFoundError, NoComplaintFoundError
+from ..error_responses import NoCustomerFoundError, NoComplaintFoundError, DocumentUploadError
 from . import store
 
 complaints_bp = Blueprint("complaints", __name__)
@@ -49,9 +49,20 @@ def create_complaint():
     Create new Complaint endpoint
     """
 
-    body = request.get_json(silent=True) or {}
+    if request.content_type.startswith("multipart/form-data"):
+        file = request.files.get("file")
 
-    new_complaint = store.create_complaint(body)
+        body = {
+            "body": request.form.get("body"),
+            "channel": request.form.get("channel"),
+            "customer_account_number": request.form.get("customer_account_number"),
+            "subject": request.form.get("subject")
+        }
+    else:
+        file = None
+        body = request.get_json(silent=True) or {}
+
+    new_complaint = store.create_complaint(body, file)
 
     if new_complaint is None:
         raise NoCustomerFoundError(code="customer_not_found", status=404, detail=f"Customer with account number {body["customer_account_number"]} was not found")

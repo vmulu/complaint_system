@@ -22,9 +22,9 @@ def analyze_attachments():
         max_bytes=MAX_IMAGE_BYTES
     )
 
-    service.upload_to_s3(attachment, filename)
+    key = service.upload_to_s3(attachment, filename)
 
     # passing in only the bytes
-    results = service.extract_document_text(attachment)
+    results = service.extract_document_text(key)
 
     return results

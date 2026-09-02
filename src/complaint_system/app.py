@@ -9,6 +9,7 @@ from .analysis.routes import analysis_bp
 from .documents.routes import documents_bp
 from .extensions import db
 from .customers.responses import DuplicateAccountNumberError
+from .complaints.responses import DocumentAccountError
 from .error_responses import error_response, NoCustomerFoundError, NoComplaintFoundError
 
 import os
@@ -65,6 +66,10 @@ def create_app():
     migrate.init_app(app, db)
 
     # Global Error Handling
+    @app.errorhandler(DocumentAccountError)
+    def handle_document_account_error(error : DocumentAccountError):
+        return error_response(error.code, error.status, error.detail)
+
     @app.errorhandler(DuplicateAccountNumberError)
     def handle_duplicate_account_number_error(error : DuplicateAccountNumberError):
         return error_response(error.code, error.status, error.detail)

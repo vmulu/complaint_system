@@ -8,9 +8,13 @@ CRUD operations on data
 from complaint_system.models import Complaint, CreateComplaintDto, UpdateComplaintDto, Priority, Status, Channel
 from pydantic import TypeAdapter
 from sqlalchemy import select
-from complaint_system.extensions import db
-from complaint_system.db_models import CustomerComplaint, CustomerRecord
+from werkzeug.datastructures import FileStorage
+from ..extensions import db
+from ..db_models import CustomerComplaint, CustomerRecord
 from ..analysis.service import redact_pii, detect_pii, derive_priority, detect_sentiment
+from ..documents.service import extract_document_text, upload_to_s3, find_account_number
+from ..documents.uploads import read_upload, ALLOWED_EXTENSIONS, MAX_IMAGE_BYTES
+from .responses import DocumentAccountError
 
 priorityAdaptor = TypeAdapter(Priority)
 statusAdaptor = TypeAdapter(Status)
@@ -101,7 +105,7 @@ def list_urgent_and_unresolved_complaints() ->list[Complaint]:
 
     return [c for c in urgent if c.status != "resolved"]
 
-def create_complaint(complaint : dict) -> Complaint | None:
+def create_complaint(complaint : dict, file: FileStorage | None = None) -> Complaint | None:
     """
     Creates a new Complaint object
     """
@@ -131,10 +135,27 @@ def create_complaint(complaint : dict) -> Complaint | None:
         contained_pii=contained_pii # type: ignore
     )
 
+    if file is not None:
+        attachment, filename = read_upload(
+            file,
+            allowed_extensions=ALLOWED_EXTENSIONS,
+            max_bytes=MAX_IMAGE_BYTES
+        )
+
+        s3_key = upload_to_s3(attachment, filename)
+
+        document_text = extract_document_text(s3_key)
+        document_account_number = find_account_number(document_text)
+
+        if document_account_number is not None:
+            if document_account_number != customer.account_number:
+                raise DocumentAccountError(code="document_account_mismatch", status=422, detail=f"The account number found in the document {document_account_number} does not match the customer's account number {customer.account_number}.")
+
     db.session.add(new_complaint)
     db.session.commit()
 
     return Complaint.model_validate(new_complaint)
+
 
 def update_complaint_status_and_priority(id : int, complaint : dict) -> Complaint | None:
     """
