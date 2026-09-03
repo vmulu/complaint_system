@@ -79,7 +79,7 @@ class CreateComplaintDto(BaseModel):
     customer_account_number : int
     channel : Channel
     subject : str = Field(min_length=1, max_length=200)
-    body : str = Field(min_length=1, max_length=5000)
+    body : str = Field(min_length=10, max_length=5000)
 
 class UpdateComplaintDto(BaseModel):
     """
