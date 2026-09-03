@@ -13,7 +13,7 @@ def upload_to_s3(file_bytes: bytes, filename: str) -> str:
 
     name, extension = filename.rsplit(".", 1)
 
-    new_filename = f"{name}-{uuid.uuid4().hex}.{extension}"
+    new_filename = f"attachments/{name}-{uuid.uuid4().hex}.{extension}"
 
     get_client("s3").put_object(
         Bucket=BUCKET_NAME,

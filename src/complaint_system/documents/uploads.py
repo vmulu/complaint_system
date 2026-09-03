@@ -4,8 +4,7 @@ from ..error_responses import DocumentUploadError
 from werkzeug.datastructures import FileStorage
 
 MAX_IMAGE_BYTES = 5 * 1024 * 1024
-ALLOWED_EXTENSIONS = {"jpeg", "jpg", "png"}
-
+ALLOWED_EXTENSIONS = {"jpeg", "jpg", "png", "pdf"}
 
 def read_upload(file_storage : FileStorage | None,
                 allowed_extensions : set[str],

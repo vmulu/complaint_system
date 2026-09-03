@@ -110,6 +110,8 @@ def create_complaint(complaint : dict, file: FileStorage | None = None) -> Compl
     Creates a new Complaint object
     """
 
+    document_text = None
+
     valid_complaint = CreateComplaintDto.model_validate(complaint)
 
     customer = db.session.execute(select(CustomerRecord).where(CustomerRecord.account_number == valid_complaint.customer_account_number)).scalar_one_or_none()
@@ -125,16 +127,6 @@ def create_complaint(complaint : dict, file: FileStorage | None = None) -> Compl
     sentiment = detect_sentiment(redacted_body)["sentiment"].lower()
     priority = derive_priority(redacted_body)
 
-    new_complaint = CustomerComplaint(
-        customer_id=customer.id, # type: ignore
-        channel=valid_complaint.channel, # type: ignore
-        priority=priority, # type: ignore
-        sentiment=sentiment, # type: ignore
-        subject=valid_complaint.subject, # type: ignore
-        body=redacted_body, # type: ignore
-        contained_pii=contained_pii # type: ignore
-    )
-
     if file is not None:
         attachment, filename = read_upload(
             file,
@@ -149,13 +141,23 @@ def create_complaint(complaint : dict, file: FileStorage | None = None) -> Compl
 
         if document_account_number is not None:
             if document_account_number != customer.account_number:
-                raise DocumentAccountError(code="document_account_mismatch", status=422, detail=f"The account number found in the document {document_account_number} does not match the customer's account number {customer.account_number}.")
+                raise DocumentAccountError(code="document_account_mismatch", status=422, detail=f"The account number found in the document is: {document_account_number} \n This does not match the customer's account number: {customer.account_number}.")
+
+    new_complaint = CustomerComplaint(
+        customer_id=customer.id,            # type: ignore
+        channel=valid_complaint.channel,    # type: ignore
+        priority=priority,                  # type: ignore
+        sentiment=sentiment,                # type: ignore
+        subject=valid_complaint.subject,    # type: ignore
+        body=redacted_body,                 # type: ignore
+        contained_pii=contained_pii,        # type: ignore
+        document_text=document_text         # type: ignore
+    )
 
     db.session.add(new_complaint)
     db.session.commit()
 
     return Complaint.model_validate(new_complaint)
-
 
 def update_complaint_status_and_priority(id : int, complaint : dict) -> Complaint | None:
     """
