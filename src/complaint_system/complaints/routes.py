@@ -5,8 +5,8 @@ API endpoints for complaints
 """
 
 from flask import Blueprint, request, jsonify
-from .responses import list_envelope, single_envelope
-from ..error_responses import NoCustomerFoundError, NoComplaintFoundError, DocumentUploadError
+from .responses import list_envelope, single_envelope, NoComplaintFoundError, DocumentUploadError
+from ..responses import NoCustomerFoundError
 from . import store
 
 complaints_bp = Blueprint("complaints", __name__)

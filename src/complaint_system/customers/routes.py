@@ -7,7 +7,7 @@ API endpoints for customers
 from flask import Blueprint, request, jsonify
 from . import store
 from .responses import list_envelope, single_envelope, DuplicateAccountNumberError
-from ..error_responses import NoCustomerFoundError
+from ..responses import NoCustomerFoundError
 
 customers_bp = Blueprint("customers", __name__)
 

@@ -4,18 +4,21 @@
        - Sentiment Analysis
 """
 
-import json
 from ..aws import get_client
 
-def detect_pii(body : str) -> list[dict]:
+def detect_pii(body : str) -> list[dict] | None:
     """detects pii in complaint body using AWS Comprehend """
 
-    response = get_client("comprehend").detect_pii_entities(
-        Text=body,
-        LanguageCode="en"
-    )
+    try:
 
-    return response["Entities"]
+        response = get_client("comprehend").detect_pii_entities(
+            Text=body,
+            LanguageCode="en"
+        )
+
+        return response["Entities"]
+    except Exception:
+        return None
 
 def redact_pii(body : str, entities : list[dict]) -> str:
     """redacts pii info from body of complaint"""
@@ -30,22 +33,28 @@ def redact_pii(body : str, entities : list[dict]) -> str:
 
     return redacted
 
-def detect_sentiment(body: str) -> dict:
+def detect_sentiment(body: str) -> dict | None:
     """ use AWS comprehend to determine overall tone of text"""
 
-    response = get_client("comprehend").detect_sentiment(
-        Text=body,
-        LanguageCode="en"
-    )
+    try:
+        response = get_client("comprehend").detect_sentiment(
+            Text=body,
+            LanguageCode="en"
+        )
 
-    return {
-        "sentiment" : response["Sentiment"],
-        "scores" : {k : round(v, 3) for k, v in response["SentimentScore"].items()}
-    }
+        return {
+            "sentiment" : response["Sentiment"],
+            "scores" : {k : round(v, 3) for k, v in response["SentimentScore"].items()}
+        }
+    except Exception:
+        return None
 
 def derive_priority(body : str):
     """use the determined sentiment to decide ticket priority level"""
     result = detect_sentiment(body)
+
+    if result is None:
+        return "needs_manual_review"
 
     if result["sentiment"] == "NEGATIVE" and result["scores"]["Negative"] > 0.7:
         return "high"

@@ -9,8 +9,8 @@ from .analysis.routes import analysis_bp
 from .documents.routes import documents_bp
 from .extensions import db
 from .customers.responses import DuplicateAccountNumberError
-from .complaints.responses import DocumentAccountError
-from .error_responses import error_response, NoCustomerFoundError, NoComplaintFoundError
+from .complaints.responses import DocumentAccountError, NoComplaintFoundError, DocumentUploadError, PIIDetectionError
+from .responses import error_response, NoCustomerFoundError
 
 import os
 import json, logging, time, uuid # generates random ids for requests
@@ -66,6 +66,14 @@ def create_app():
     migrate.init_app(app, db)
 
     # Global Error Handling
+    @app.errorhandler(PIIDetectionError)
+    def handle_pii_detection_error(error : PIIDetectionError):
+        return error_response(error.code, error.status, error.detail)
+
+    @app.errorhandler(DocumentUploadError)
+    def handle_document_upload_error(error : DocumentUploadError):
+        return error_response(error.code, error.status, error.detail)
+
     @app.errorhandler(DocumentAccountError)
     def handle_document_account_error(error : DocumentAccountError):
         return error_response(error.code, error.status, error.detail)

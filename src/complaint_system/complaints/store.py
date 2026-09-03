@@ -14,7 +14,7 @@ from ..db_models import CustomerComplaint, CustomerRecord
 from ..analysis.service import redact_pii, detect_pii, derive_priority, detect_sentiment
 from ..documents.service import extract_document_text, upload_to_s3, find_account_number
 from ..documents.uploads import read_upload, ALLOWED_EXTENSIONS, MAX_IMAGE_BYTES
-from .responses import DocumentAccountError
+from .responses import DocumentAccountError, PIIDetectionError
 
 priorityAdaptor = TypeAdapter(Priority)
 statusAdaptor = TypeAdapter(Status)
@@ -120,12 +120,22 @@ def create_complaint(complaint : dict, file: FileStorage | None = None) -> Compl
 
     # pii checks
     pii_check = detect_pii(valid_complaint.body)
+
+    # if pii is down i dont want to save body at all bc i cannot guarantee tht is not PII
+    if pii_check is None:
+        raise PIIDetectionError(code="pii_detection_failed", status=503, detail="PII detection is currently unavailable.")
     redacted_body = redact_pii(valid_complaint.body, pii_check)
     contained_pii = len(pii_check) > 0
 
     # priority assignment
-    sentiment = detect_sentiment(redacted_body)["sentiment"].lower()
-    priority = derive_priority(redacted_body)
+    check_sentiment = detect_sentiment(redacted_body)
+
+    if check_sentiment is None:
+        sentiment = None
+        priority = "needs_manual_review"
+    else:
+        sentiment = check_sentiment["sentiment"].lower()
+        priority = derive_priority(redacted_body)
 
     if file is not None:
         attachment, filename = read_upload(

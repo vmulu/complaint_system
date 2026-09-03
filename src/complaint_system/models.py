@@ -8,7 +8,7 @@ from typing import Literal
 AccountType = Literal["residential", "commercial"]
 Channel = Literal["email", "web_form", "mail"]
 Status = Literal["new", "in_progress", "resolved"]
-Priority = Literal["low", "medium", "high"]
+Priority = Literal["low", "medium", "high", "needs_manual_review"]
 
 class Customer(BaseModel):
     """
