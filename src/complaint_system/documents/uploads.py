@@ -21,7 +21,7 @@ def read_upload(file_storage : FileStorage | None,
     if extension not in allowed_extensions:
         raise DocumentUploadError(
             "unsupported_media_type",
-            415,
+            422,
             f".{extension} is not supported. expected one of the following : {[e for e in allowed_extensions]}"
         )
 

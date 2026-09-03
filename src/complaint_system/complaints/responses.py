@@ -5,15 +5,6 @@
 from flask import jsonify
 from complaint_system.models import Complaint
 
-class DocumentAccountError(Exception):
-    """Raised when a customer account number already exists."""
-    def __init__(self, code : str, status : int, detail : str | None = None) -> None:
-
-        super().__init__(detail or code)
-        self.code = code
-        self.status = status
-        self.detail = detail
-
 class NoPriorityOverrideReasonError(Exception):
     """Raised when PII Detection Fails."""
     def __init__(self, code : str, status : int, detail : str | None = None) -> None:
@@ -25,6 +16,15 @@ class NoPriorityOverrideReasonError(Exception):
 
 class PIIDetectionError(Exception):
     """Raised when PII Detection Fails."""
+    def __init__(self, code : str, status : int, detail : str | None = None) -> None:
+
+        super().__init__(detail or code)
+        self.code = code
+        self.status = status
+        self.detail = detail
+
+class DocumentAccountError(Exception):
+    """Raised when a customer account number already exists."""
     def __init__(self, code : str, status : int, detail : str | None = None) -> None:
 
         super().__init__(detail or code)

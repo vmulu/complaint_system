@@ -147,16 +147,18 @@ def create_complaint(complaint : dict, file: FileStorage | None = None) -> Compl
         s3_key = upload_to_s3(attachment, filename)
 
         document_text = extract_document_text(s3_key)
-        document_account_number = find_account_number(document_text)
 
-        # redact document text
-        document_text = "\n".join(document_text)
-        pii_in_document = detect_pii(document_text) or []
-        document_text = redact_pii(document_text, pii_in_document)
+        if document_text is not None:
+            document_account_number = find_account_number(document_text)
 
-        if document_account_number is not None:
-            if document_account_number != customer.account_number:
-                raise DocumentAccountError(code="document_account_mismatch", status=422, detail=f"The account number found in the document is: {document_account_number} \n This does not match the customer's account number: {customer.account_number}.")
+            # redact document text
+            document_text = "\n".join(document_text)
+            pii_in_document = detect_pii(document_text) or []
+            document_text = redact_pii(document_text, pii_in_document)
+
+            if document_account_number is not None:
+                if document_account_number != customer.account_number:
+                    raise DocumentAccountError(code="document_account_mismatch", status=422, detail=f"The account number found in the document is: {document_account_number} \n This does not match the customer's account number: {customer.account_number}.")
 
     new_complaint = CustomerComplaint(
         customer_id=customer.id,            # type: ignore
