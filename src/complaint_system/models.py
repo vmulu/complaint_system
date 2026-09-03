@@ -17,8 +17,8 @@ class Customer(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-    name : str
-    account_number : int
+    name : str = Field(min_length=2)
+    account_number: int = Field(ge=10000, le=99999)
     account_type : AccountType
 
 class SendCustomer(BaseModel):
@@ -27,8 +27,8 @@ class SendCustomer(BaseModel):
     """
     model_config = ConfigDict(from_attributes=True)
 
-    name : str
-    account_number : int
+    name : str = Field(min_length=2)
+    account_number: int = Field(ge=10000, le=99999)
     account_type : AccountType
 
     complaint_count : int
@@ -39,8 +39,8 @@ class CreateCustomerDto(BaseModel):
     """
 
     model_config = ConfigDict(extra="forbid")
-    name : str
-    account_number : int
+    name : str = Field(min_length=2)
+    account_number: int = Field(ge=10000, le=99999)
     account_type : AccountType
 
 class UpdateCustomerDto(BaseModel):

@@ -98,6 +98,10 @@ def create_app():
     def handle_no_complaint_error(error : NoComplaintFoundError):
         return error_response(error.code, error.status, error.detail)
 
+    @app.errorhandler(TypeError)
+    def handle_type_error(error : TypeError):
+        return error_response("type_error", 422, str(error))
+
     @app.errorhandler(ValidationError)
     def handle_validation_error(error : ValidationError):
 

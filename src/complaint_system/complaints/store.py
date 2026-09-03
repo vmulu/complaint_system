@@ -44,7 +44,7 @@ SORT_ORDERS = {
     }
 }
 
-def sort_complaints(results : list[Complaint], sort_by : str) -> list[Complaint]:
+def _sort_complaints(results : list[Complaint], sort_by : str) -> list[Complaint]:
     """sorts complaint list"""
 
     if sort_by not in SORT_ORDERS:
@@ -64,7 +64,7 @@ def list_complaints() -> list[Complaint]:
     stmt = select(CustomerComplaint).order_by(CustomerComplaint.id)
     records = db.session.execute(stmt).scalars()
 
-    return sort_complaints([Complaint.model_validate(r) for r in records], sort_by="priority")
+    return _sort_complaints([Complaint.model_validate(r) for r in records], sort_by="priority")
 
 def list_complaints_by_query(*, customer_id : int | None = None,
                                 priority : str | None = None,
@@ -96,7 +96,7 @@ def list_complaints_by_query(*, customer_id : int | None = None,
     results = [Complaint.model_validate(r) for r in records]
 
     if sort_by:
-        return sort_complaints(results, sort_by)
+        return _sort_complaints(results, sort_by)
 
     return results
 

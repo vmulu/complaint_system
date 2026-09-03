@@ -51,6 +51,7 @@ def detect_sentiment(body: str) -> dict | None:
 
 def derive_priority(body : str):
     """use the determined sentiment to decide ticket priority level"""
+
     result = detect_sentiment(body)
 
     if result is None:
