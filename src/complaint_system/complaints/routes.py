@@ -5,7 +5,7 @@ API endpoints for complaints
 """
 
 from flask import Blueprint, request, jsonify
-from .responses import list_envelope, single_envelope, NoComplaintFoundError
+from .responses import list_envelope, single_envelope, NoComplaintFoundError, DeleteConfirmationRequiredError
 from ..responses import NoCustomerFoundError
 from . import store
 
@@ -85,12 +85,17 @@ def update_complaint(complaint_id : int):
 
     return single_envelope(complaint)
 
-# DELETE /api/v1/complaints/<complaint_id>
-@complaints_bp.delete("/<int:complaint_id>")
+# DELETE /api/v1/complaints/admin/<complaint_id>
+@complaints_bp.delete("/admin/<int:complaint_id>")
 def delete_complaint(complaint_id : int):
     """
     Delete Complaint endpoint
     """
+
+    confirm = request.args.get("confirm")
+
+    if confirm != "true":
+        raise DeleteConfirmationRequiredError(code="delete_confirmation_required", status=400, detail="Confirmation is required to delete this customer.")
 
     success = store.delete_complaint(complaint_id)
 

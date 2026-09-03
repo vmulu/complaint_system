@@ -23,8 +23,9 @@ channelAdaptor = TypeAdapter(Channel)
 SORT_ORDERS = {
     "priority": {
         "high": 1,
-        "medium": 2,
-        "low": 3
+        "needs_manual_review": 2,
+        "medium": 3,
+        "low": 4
     },
     "status": {
         "new": 1,
