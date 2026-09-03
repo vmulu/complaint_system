@@ -9,7 +9,7 @@ from .analysis.routes import analysis_bp
 from .documents.routes import documents_bp
 from .extensions import db
 from .customers.responses import DuplicateAccountNumberError
-from .complaints.responses import DocumentAccountError, NoComplaintFoundError, DocumentUploadError, PIIDetectionError
+from .complaints.responses import DocumentAccountError, NoComplaintFoundError, DocumentUploadError, PIIDetectionError, NoPriorityOverrideReasonError
 from .responses import error_response, NoCustomerFoundError
 
 import os
@@ -66,6 +66,10 @@ def create_app():
     migrate.init_app(app, db)
 
     # Global Error Handling
+    @app.errorhandler(NoPriorityOverrideReasonError)
+    def handle_no_priority_override_reason_error(error : NoPriorityOverrideReasonError):
+        return error_response(error.code, error.status, error.detail)
+
     @app.errorhandler(PIIDetectionError)
     def handle_pii_detection_error(error : PIIDetectionError):
         return error_response(error.code, error.status, error.detail)

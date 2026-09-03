@@ -14,7 +14,7 @@ from ..db_models import CustomerComplaint, CustomerRecord
 from ..analysis.service import redact_pii, detect_pii, derive_priority, detect_sentiment
 from ..documents.service import extract_document_text, upload_to_s3, find_account_number
 from ..documents.uploads import read_upload, ALLOWED_EXTENSIONS, MAX_IMAGE_BYTES
-from .responses import DocumentAccountError, PIIDetectionError
+from .responses import DocumentAccountError, PIIDetectionError, NoPriorityOverrideReasonError
 
 priorityAdaptor = TypeAdapter(Priority)
 statusAdaptor = TypeAdapter(Status)
@@ -149,6 +149,7 @@ def create_complaint(complaint : dict, file: FileStorage | None = None) -> Compl
         document_text = extract_document_text(s3_key)
         document_account_number = find_account_number(document_text)
 
+        # redact document text
         document_text = "\n".join(document_text)
         pii_in_document = detect_pii(document_text) or []
         document_text = redact_pii(document_text, pii_in_document)
@@ -186,8 +187,11 @@ def update_complaint_status_and_priority(id : int, complaint : dict) -> Complain
 
     if valid_complaint.status is not None:
         record.status = valid_complaint.status
-    if valid_complaint.priority is not None:
+    if valid_complaint.priority is not None and valid_complaint.priority_override_reason is not None:
         record.priority = valid_complaint.priority
+        record.priority_override_reason = valid_complaint.priority_override_reason
+    if (valid_complaint.priority is not None and valid_complaint.priority_override_reason is None) or (valid_complaint.priority is None and valid_complaint.priority_override_reason is not None):
+        raise NoPriorityOverrideReasonError(code="priority_override_reason_required", status=422, detail="A reason is required when manually overriding priority.")
 
     db.session.commit()
 

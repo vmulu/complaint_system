@@ -38,6 +38,7 @@ class CustomerComplaint(db.Model):
     body : Mapped[str] = mapped_column(Text, nullable=False)
     contained_pii: Mapped[bool] = mapped_column(nullable=False, default=False)
     document_text = db.Column(Text, nullable=True)
+    priority_override_reason = db.Column(Text, nullable=True)
 
     customer : Mapped["CustomerRecord"] = relationship(
         back_populates="complaints"

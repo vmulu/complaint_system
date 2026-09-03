@@ -89,3 +89,4 @@ class UpdateComplaintDto(BaseModel):
     model_config = ConfigDict(extra="forbid")
     status : Status | None = None
     priority : Priority | None = None
+    priority_override_reason: str | None = None
