@@ -1,0 +1,27 @@
+
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "S3ComplaintBucket",
+            "Effect": "Allow",
+            "Action": [
+                "s3:GetObject",
+                "s3:PutObject"
+            ],
+            "Resource": [
+                "arn:aws:s3:::vm-complaint-system-bucket/*"
+            ]
+        },
+        {
+            "Sid": "ManagedAiServicesNoResourceLevelSupport",
+            "Effect": "Allow",
+            "Action": [
+                "comprehend:DetectSentiment",
+                "comprehend:DetectPiiEntities",
+                "textract:DetectDocumentText"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
