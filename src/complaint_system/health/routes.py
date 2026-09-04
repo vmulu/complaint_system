@@ -14,7 +14,7 @@ health_bp = Blueprint("health", __name__)
 @health_bp.get("/live")
 def live():
     """checking if Flask app is up and running"""
-    return jsonify({"status": "alive"}), 200
+    return jsonify({"status": "flask is alive"}), 200
 
 
 @health_bp.get("/ready")
@@ -22,6 +22,6 @@ def ready():
     """checking connection with db"""
     try:
         db.session.execute(text("SELECT 1"))
-        return jsonify({"status": "ready"}), 200
+        return jsonify({"status": "db ready"}), 200
     except Exception:
-        return jsonify({"status": "not ready"}), 503
+        return jsonify({"status": "db not ready"}), 503
