@@ -71,7 +71,7 @@ def test_create_complaint(client, complaint_data, expected_status):
 def test_update_complaint_requires_override_reason(client, complaint_data):
     """ testing put endpoint working """
 
-    response = client.put("/api/v1/complaints/4", json=complaint_data)
+    response = client.put("/api/v1/complaints/3", json=complaint_data)
 
     assert response.status_code == 422
 
