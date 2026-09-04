@@ -26,7 +26,7 @@ def list_customers() -> list[SendCustomer]:
         SendCustomer(
             name=r.name,
             account_number=r.account_number,
-            account_type=r.account_type, # type: ignore
+            account_type=r.account_type,        # type: ignore
             complaint_count=len(r.complaints)
         )
         for r in records

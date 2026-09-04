@@ -19,7 +19,6 @@ def get_customers():
     """
     account_type = request.args.get("account_type")
 
-    # if query is given give me all Customers with that account type
     if account_type:
         return list_envelope(store.find_customers_by_account_type(account_type))
 
