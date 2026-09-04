@@ -8,6 +8,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 class CustomerRecord(db.Model):
     """
+    DB Model for Customer
     """
 
     __tablename__ = "customers"
@@ -24,6 +25,7 @@ class CustomerRecord(db.Model):
 
 class CustomerComplaint(db.Model):
     """
+    DB Model for Complaint
     """
 
     __tablename__ = "customer_complaints"
@@ -31,7 +33,7 @@ class CustomerComplaint(db.Model):
     id : Mapped[int] = mapped_column(autoincrement=True, primary_key=True)
     customer_id : Mapped[int] = mapped_column(ForeignKey("customers.id"), nullable=False)
     channel : Mapped[str] = mapped_column(String(10), nullable=False)
-    status : Mapped[str] = mapped_column(String(20), nullable=False, default="new")     # might change default to 'needs_manual_review' if sentiment fails
+    status : Mapped[str] = mapped_column(String(20), nullable=False, default="new")
     priority : Mapped[str] = mapped_column(String(20), nullable=False, default="low")
     sentiment: Mapped[str | None] = mapped_column(String(20),nullable=True)
     subject : Mapped[str] = mapped_column(Text, nullable=False)

@@ -75,7 +75,6 @@ def create_customer(customer : dict) -> Customer | None:
     valid_customer = CreateCustomerDto.model_validate(customer)
     existing_customer = find_customer_by_account_number(valid_customer.account_number)
 
-    # if a customer exists with this account number return None and catch in routes
     if existing_customer is not None:
         return None
 

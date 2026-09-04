@@ -23,9 +23,7 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 def create_app():
-    """
-
-    """
+    """Flask creating application, routes, db, and global error handling"""
     app = Flask(__name__)
 
     app.register_blueprint(customers_bp, url_prefix="/api/v1/customers")

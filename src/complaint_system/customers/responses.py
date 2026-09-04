@@ -1,5 +1,5 @@
 """
-
+Error responses for Customer entities
 """
 
 from flask import jsonify
@@ -15,13 +15,9 @@ class DuplicateAccountNumberError(Exception):
         self.detail = detail
 
 def list_envelope(customers: list[Customer] | list[SendCustomer]):
-    """
-
-    """
+    """ formats API response for list of entities """
     return jsonify(count=len(customers), items=[row.model_dump() for row in customers])
 
 def single_envelope(customer: Customer | SendCustomer):
-    """
-
-    """
+    """ formats API response for single entities """
     return jsonify(customer.model_dump(mode="json"))

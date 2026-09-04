@@ -17,4 +17,5 @@ class NoCustomerFoundError(Exception):
 
 
 def error_response(code : str, status : int, detail : str | None = None):
+    """error response formatting"""
     return jsonify(error=code, detail=detail), status

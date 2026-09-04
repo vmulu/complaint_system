@@ -1,5 +1,4 @@
-"""creating the boto3 client that will connect to aws w our
-credentials an return running sessions """
+"""creating the boto3 client that will connect to aws w our credentials an return running sessions """
 
 import boto3
 from functools import lru_cache

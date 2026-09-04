@@ -119,16 +119,13 @@ def create_complaint(complaint : dict, file: FileStorage | None = None) -> Compl
     if customer is None:
         return None
 
-    # pii checks
     pii_check = detect_pii(valid_complaint.body)
 
-    # if pii is down i dont want to save body at all bc i cannot guarantee tht is not PII
     if pii_check is None:
         raise PIIDetectionError(code="pii_detection_failed", status=503, detail="PII detection is currently unavailable.")
     redacted_body = redact_pii(valid_complaint.body, pii_check)
     contained_pii = len(pii_check) > 0
 
-    # priority assignment
     check_sentiment = detect_sentiment(redacted_body)
 
     if check_sentiment is None:
@@ -152,7 +149,6 @@ def create_complaint(complaint : dict, file: FileStorage | None = None) -> Compl
         if document_text is not None:
             document_account_number = find_account_number(document_text)
 
-            # redact document text
             document_text = "\n".join(document_text)
             pii_in_document = detect_pii(document_text) or []
             document_text = redact_pii(document_text, pii_in_document)
